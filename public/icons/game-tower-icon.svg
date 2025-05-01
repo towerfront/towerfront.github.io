@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <!-- Tower body -->
+  <rect x="30" y="30" width="60" height="75" fill="#987769" />
+  
+  <!-- Tower top with notches -->
+  <rect x="25" y="20" width="70" height="10" fill="#987769" />
+  
+  <!-- Tower windows/doors -->
+  <rect x="45" y="60" width="30" height="45" fill="#5a4540" />
+  <rect x="50" y="40" width="20" height="15" fill="#5a4540" />
+  
+  <!-- Tower top notches -->
+  <rect x="30" y="10" width="10" height="10" fill="#987769" />
+  <rect x="55" y="10" width="10" height="10" fill="#987769" />
+  <rect x="80" y="10" width="10" height="10" fill="#987769" />
+  
+  <!-- Flag on top -->
+  <rect x="55" y="0" width="3" height="10" fill="#5a4540" />
+  <polygon points="58,1 68,3 58,5" fill="#d13b27" />
+</svg>

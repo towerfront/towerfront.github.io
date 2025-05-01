@@ -1,0 +1,49 @@
+/* /home/robert/gitlocal/zzNotInRepo/nodefront/src/components/GameFrame.css */
+
+.game-frame-background {
+  position: fixed; /* Cover the entire viewport */
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: var(--background-color);
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%238d6e63' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px; /* Add some padding around the frame */
+  box-sizing: border-box;
+}
+
+.game-frame-content {
+  background-color: var(--panel-color);
+  border: 3px solid var(--secondary-color);
+  border-radius: 15px;
+  padding: 30px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+  max-width: 90%; /* Limit maximum width */
+  max-height: 90%; /* Limit maximum height */
+  width: 1200px; /* Desired default width */
+  height: 800px; /* Desired default height */
+  overflow: auto; /* Add scrollbars if content overflows */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center; /* Center content vertically by default */
+  position: relative; /* For potential absolute positioning inside */
+}
+
+/* Media query for smaller screens */
+@media (max-width: 1250px) {
+  .game-frame-content {
+    width: 95%;
+    height: 95%;
+  }
+}
+
+@media (max-width: 850px) {
+  .game-frame-content {
+    padding: 20px;
+  }
+}

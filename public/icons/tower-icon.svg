@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <!-- Tower base -->
+  <rect x="20" y="60" width="60" height="30" fill="#555" />
+  
+  <!-- Tower middle section -->
+  <rect x="25" y="30" width="50" height="30" fill="#777" />
+  
+  <!-- Tower top section -->
+  <rect x="30" y="10" width="40" height="20" fill="#999" />
+  
+  <!-- Tower decorative elements - keyways -->
+  <rect x="35" y="5" width="10" height="10" fill="#999" />
+  <rect x="55" y="5" width="10" height="10" fill="#999" />
+  
+  <!-- Tower decorative elements - windows -->
+  <rect x="35" y="40" width="10" height="15" fill="#333" />
+  <rect x="55" y="40" width="10" height="15" fill="#333" />
+  <rect x="45" y="70" width="10" height="15" fill="#333" />
+</svg>
