@@ -860,10 +860,10 @@ class GameEngine {
     const cosTheta = Math.cos(rotationRad);
     const sinTheta = Math.sin(rotationRad);
     
-    const rotatedX1 = translatedX1 * cosTheta - translatedY1 * sinTheta;
-    const rotatedY1 = translatedX1 * sinTheta + translatedY1 * cosTheta;
-    const rotatedX2 = translatedX2 * cosTheta - translatedY2 * sinTheta;
-    const rotatedY2 = translatedX2 * sinTheta + translatedY2 * cosTheta;
+    let rotatedX1 = translatedX1 * cosTheta - translatedY1 * sinTheta;
+    let rotatedY1 = translatedX1 * sinTheta + translatedY1 * cosTheta;
+    let rotatedX2 = translatedX2 * cosTheta - translatedY2 * sinTheta;
+    let rotatedY2 = translatedX2 * sinTheta + translatedY2 * cosTheta;
 
     // Step 3: Check if the rotated line intersects the axis-aligned rectangle
     // This is the Cohen-Sutherland line clipping algorithm simplified for our case
