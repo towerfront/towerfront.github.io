@@ -63,3 +63,6 @@ export const ATTACK_RATE = {
 // Default game world dimensions
 export const DEFAULT_GAME_WIDTH = 1000;
 export const DEFAULT_GAME_HEIGHT = 750;
+
+// Debug mode - set to true to enable console logging during gameplay
+export const DEBUG_MODE = false;

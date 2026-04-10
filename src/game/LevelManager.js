@@ -7,8 +7,8 @@ const defaultLevels = {
         name: "Training Grounds",
         description: "A simple map for beginners to learn the basics.",
         difficulty: "easy",
-        width: DEFAULT_GAME_WIDTH, // Add width
-        height: DEFAULT_GAME_HEIGHT, // Add height
+        width: DEFAULT_GAME_WIDTH,
+        height: DEFAULT_GAME_HEIGHT,
         towers: [
             { x: 100, y: 100, team: TEAMS.PLAYER, initialUnits: 15 },
             { x: 700, y: 500, team: TEAMS.ENEMY1, initialUnits: 10 },
@@ -21,8 +21,8 @@ const defaultLevels = {
         name: "The Crossroads",
         description: "Multiple paths lead to victory - which will you choose?",
         difficulty: "medium",
-        width: DEFAULT_GAME_WIDTH, // Add width
-        height: DEFAULT_GAME_HEIGHT, // Add height
+        width: DEFAULT_GAME_WIDTH,
+        height: DEFAULT_GAME_HEIGHT,
         towers: [
             { x: 150, y: 150, team: TEAMS.PLAYER, initialUnits: 20, type: TOWER_TYPES.ATTACK },
             { x: 650, y: 150, team: TEAMS.ENEMY1, initialUnits: 15 },
@@ -31,6 +31,138 @@ const defaultLevels = {
             { x: 400, y: 300, team: TEAMS.NEUTRAL, initialUnits: 5 },
         ],
         order: 2,
+        isUnlocked: true
+    },
+    level3: {
+        name: "Bridgehead",
+        description: "Establish a foothold across the river. Hedges block direct paths.",
+        difficulty: "easy",
+        width: DEFAULT_GAME_WIDTH,
+        height: DEFAULT_GAME_HEIGHT,
+        towers: [
+            { x: 120, y: 375, team: TEAMS.PLAYER, initialUnits: 18 },
+            { x: 330, y: 180, team: TEAMS.NEUTRAL, initialUnits: 8 },
+            { x: 330, y: 570, team: TEAMS.NEUTRAL, initialUnits: 8 },
+            { x: 600, y: 375, team: TEAMS.NEUTRAL, initialUnits: 12, type: TOWER_TYPES.DEFEND },
+            { x: 850, y: 200, team: TEAMS.ENEMY1, initialUnits: 14 },
+            { x: 850, y: 550, team: TEAMS.ENEMY1, initialUnits: 14, type: TOWER_TYPES.ATTACK },
+        ],
+        hedges: [
+            { id: 'h1', x: 470, y: 280, width: 30, height: 200, rotation: 0 },
+            { id: 'h2', x: 470, y: 520, width: 30, height: 160, rotation: 0 },
+        ],
+        order: 3,
+        isUnlocked: true
+    },
+    level4: {
+        name: "Three-Way Standoff",
+        description: "Two enemy factions fight each other — and you. Use it to your advantage.",
+        difficulty: "medium",
+        width: DEFAULT_GAME_WIDTH,
+        height: DEFAULT_GAME_HEIGHT,
+        towers: [
+            { x: 500, y: 650, team: TEAMS.PLAYER, initialUnits: 20, type: TOWER_TYPES.NORMAL },
+            { x: 350, y: 580, team: TEAMS.NEUTRAL, initialUnits: 6 },
+            { x: 650, y: 580, team: TEAMS.NEUTRAL, initialUnits: 6 },
+            { x: 500, y: 400, team: TEAMS.NEUTRAL, initialUnits: 15, type: TOWER_TYPES.DEFEND },
+            { x: 200, y: 250, team: TEAMS.ENEMY1, initialUnits: 18, type: TOWER_TYPES.ATTACK },
+            { x: 350, y: 150, team: TEAMS.ENEMY1, initialUnits: 10 },
+            { x: 800, y: 250, team: TEAMS.ENEMY2, initialUnits: 18, type: TOWER_TYPES.HEALING },
+            { x: 650, y: 150, team: TEAMS.ENEMY2, initialUnits: 10 },
+            { x: 500, y: 100, team: TEAMS.NEUTRAL, initialUnits: 20, type: TOWER_TYPES.ATTACK },
+        ],
+        order: 4,
+        isUnlocked: true
+    },
+    level5: {
+        name: "The Gauntlet",
+        description: "A narrow corridor of towers. Push through the defenses.",
+        difficulty: "medium",
+        width: DEFAULT_GAME_WIDTH,
+        height: DEFAULT_GAME_HEIGHT,
+        towers: [
+            { x: 80, y: 375, team: TEAMS.PLAYER, initialUnits: 25, type: TOWER_TYPES.ATTACK },
+            { x: 250, y: 280, team: TEAMS.NEUTRAL, initialUnits: 8 },
+            { x: 250, y: 470, team: TEAMS.NEUTRAL, initialUnits: 8 },
+            { x: 430, y: 375, team: TEAMS.NEUTRAL, initialUnits: 15, type: TOWER_TYPES.DEFEND },
+            { x: 610, y: 280, team: TEAMS.ENEMY1, initialUnits: 12 },
+            { x: 610, y: 470, team: TEAMS.ENEMY1, initialUnits: 12 },
+            { x: 790, y: 375, team: TEAMS.ENEMY1, initialUnits: 20, type: TOWER_TYPES.HEALING },
+            { x: 920, y: 200, team: TEAMS.ENEMY1, initialUnits: 10, type: TOWER_TYPES.ATTACK },
+            { x: 920, y: 550, team: TEAMS.ENEMY1, initialUnits: 10, type: TOWER_TYPES.ATTACK },
+        ],
+        hedges: [
+            { id: 'h1', x: 430, y: 150, width: 30, height: 200, rotation: 0 },
+            { id: 'h2', x: 430, y: 600, width: 30, height: 200, rotation: 0 },
+        ],
+        order: 5,
+        isUnlocked: true
+    },
+    level6: {
+        name: "Fortress",
+        description: "The enemy has built a fortified position. Break through their walls.",
+        difficulty: "hard",
+        width: DEFAULT_GAME_WIDTH,
+        height: DEFAULT_GAME_HEIGHT,
+        towers: [
+            { x: 100, y: 200, team: TEAMS.PLAYER, initialUnits: 22 },
+            { x: 100, y: 550, team: TEAMS.PLAYER, initialUnits: 18, type: TOWER_TYPES.HEALING },
+            { x: 300, y: 375, team: TEAMS.NEUTRAL, initialUnits: 10 },
+            { x: 550, y: 200, team: TEAMS.NEUTRAL, initialUnits: 15, type: TOWER_TYPES.ATTACK },
+            { x: 550, y: 550, team: TEAMS.NEUTRAL, initialUnits: 15, type: TOWER_TYPES.ATTACK },
+            { x: 750, y: 375, team: TEAMS.ENEMY1, initialUnits: 30, type: TOWER_TYPES.DEFEND },
+            { x: 900, y: 200, team: TEAMS.ENEMY1, initialUnits: 20 },
+            { x: 900, y: 550, team: TEAMS.ENEMY1, initialUnits: 20 },
+        ],
+        hedges: [
+            { id: 'h1', x: 650, y: 300, width: 30, height: 160, rotation: 20 },
+            { id: 'h2', x: 650, y: 450, width: 30, height: 160, rotation: -20 },
+        ],
+        order: 6,
+        isUnlocked: true
+    },
+    level7: {
+        name: "Island Chain",
+        description: "Scattered neutral towers surround two powerful enemies. Expand carefully.",
+        difficulty: "hard",
+        width: DEFAULT_GAME_WIDTH,
+        height: DEFAULT_GAME_HEIGHT,
+        towers: [
+            { x: 500, y: 375, team: TEAMS.PLAYER, initialUnits: 15 },
+            { x: 150, y: 150, team: TEAMS.NEUTRAL, initialUnits: 5 },
+            { x: 350, y: 100, team: TEAMS.NEUTRAL, initialUnits: 5 },
+            { x: 650, y: 100, team: TEAMS.NEUTRAL, initialUnits: 5, type: TOWER_TYPES.HEALING },
+            { x: 850, y: 150, team: TEAMS.NEUTRAL, initialUnits: 5 },
+            { x: 150, y: 600, team: TEAMS.NEUTRAL, initialUnits: 5 },
+            { x: 350, y: 650, team: TEAMS.NEUTRAL, initialUnits: 5, type: TOWER_TYPES.ATTACK },
+            { x: 650, y: 650, team: TEAMS.NEUTRAL, initialUnits: 5 },
+            { x: 850, y: 600, team: TEAMS.NEUTRAL, initialUnits: 5 },
+            { x: 100, y: 375, team: TEAMS.ENEMY1, initialUnits: 35, type: TOWER_TYPES.ATTACK },
+            { x: 900, y: 375, team: TEAMS.ENEMY2, initialUnits: 35, type: TOWER_TYPES.ATTACK },
+        ],
+        order: 7,
+        isUnlocked: true
+    },
+    level8: {
+        name: "Siege Breaker",
+        description: "You're surrounded. Break out before the enemies overwhelm you.",
+        difficulty: "expert",
+        width: DEFAULT_GAME_WIDTH,
+        height: DEFAULT_GAME_HEIGHT,
+        towers: [
+            { x: 500, y: 375, team: TEAMS.PLAYER, initialUnits: 30, type: TOWER_TYPES.DEFEND },
+            { x: 350, y: 250, team: TEAMS.NEUTRAL, initialUnits: 8 },
+            { x: 650, y: 250, team: TEAMS.NEUTRAL, initialUnits: 8 },
+            { x: 350, y: 500, team: TEAMS.NEUTRAL, initialUnits: 8 },
+            { x: 650, y: 500, team: TEAMS.NEUTRAL, initialUnits: 8 },
+            { x: 150, y: 150, team: TEAMS.ENEMY1, initialUnits: 20, type: TOWER_TYPES.ATTACK },
+            { x: 850, y: 150, team: TEAMS.ENEMY1, initialUnits: 20, type: TOWER_TYPES.ATTACK },
+            { x: 150, y: 600, team: TEAMS.ENEMY2, initialUnits: 20, type: TOWER_TYPES.HEALING },
+            { x: 850, y: 600, team: TEAMS.ENEMY2, initialUnits: 20, type: TOWER_TYPES.HEALING },
+            { x: 500, y: 80, team: TEAMS.ENEMY1, initialUnits: 15 },
+            { x: 500, y: 670, team: TEAMS.ENEMY2, initialUnits: 15 },
+        ],
+        order: 8,
         isUnlocked: true
     }
 };
@@ -72,7 +204,6 @@ class LevelManager {
         // Include hedge data if present
         if (levelData.hedges && Array.isArray(levelData.hedges)) {
             result.hedges = levelData.hedges;
-            console.log(`Loaded ${levelData.hedges.length} hedges for level ${levelId}`);
         }
         
         return result;
@@ -185,7 +316,6 @@ class LevelManager {
                     height: hedge.height || 120, // Default height if not specified
                     rotation: hedge.rotation || 0 // Default rotation if not specified
                 }));
-                console.log(`Saving ${cleanLevelData.hedges.length} hedges for level ${levelId}`);
             }
             
             // Update with new level data

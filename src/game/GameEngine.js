@@ -3,7 +3,7 @@ import GameState from './GameState';
 import LevelManager from './LevelManager';
 import Unit from './Unit';
 import AIController from './AIController'; // Import AIController
-import { TOWER_RADIUS, TOWER_TYPES, TEAM_COLORS, ATTACK_RATE, MAX_UNITS_PER_TOWER } from './constants';
+import { TOWER_RADIUS, TOWER_TYPES, TEAM_COLORS, ATTACK_RATE, MAX_UNITS_PER_TOWER, DEBUG_MODE } from './constants';
 
 class GameEngine {
   constructor(canvas, levelId, onGameWon, onGameLost) { // Add onGameLost callback
@@ -44,7 +44,7 @@ class GameEngine {
         // Initialize AI for non-player, non-neutral teams
         if (tower.team !== this.gameState.playerTeam && tower.team !== 'neutral') {
           if (!this.aiControllers[tower.team]) {
-            console.log(`Initializing AI for team: ${tower.team}`);
+            if (DEBUG_MODE) console.log(`Initializing AI for team: ${tower.team}`);
             this.aiControllers[tower.team] = new AIController(tower.team, this.gameState);
           }
         }
@@ -53,16 +53,14 @@ class GameEngine {
       // Load hedges from level data if present
       if (levelData.hedges && Array.isArray(levelData.hedges)) {
         this.gameState.hedges = levelData.hedges;
-        console.log(`Loaded ${levelData.hedges.length} hedges for level ${levelId}`);
       } else {
-        this.gameState.hedges = []; // Initialize to empty array if no hedges in level data
+        this.gameState.hedges = [];
       }
       
       // Initialize inbound connection counts for towers
       this.updateInboundConnectionCounts();
       
-      console.log(`Level ${levelId} loaded with ${levelData.towers.length} towers.`);
-      console.log('AI Controllers initialized:', Object.keys(this.aiControllers));
+      if (DEBUG_MODE) console.log(`Level ${levelId} loaded with ${levelData.towers.length} towers.`);
     } else {
       console.error(`Failed to load level ${levelId}`);
     }
@@ -192,28 +190,26 @@ class GameEngine {
       
       if (intersectingObject) {
         if (intersectingObject.isHedge) {
-          // If there's a hedge in the way, prevent the connection
-          console.log(`Cannot connect through hedge: ${intersectingObject.message}`);
-          // Reset dragging state and return early
+          // If there's a hedge in the way, show failure flash and prevent the connection
+          if (startTower) this.renderer.showConnectionFailure(startTower.id);
           this.gameState.playerInput.isDragging = false;
           this.gameState.playerInput.startTowerId = null;
           return;
         } else if (intersectingObject.id !== endTower.id) {
-          // It's a tower in the way
-          console.log(`Cannot connect through tower ${intersectingObject.id}. Targeting the intersecting tower instead.`);
           endTower = intersectingObject;
         }
       }
       
       // Attempt to handle connection creation (which now includes the "do nothing" if exists logic)
       connectionActionTaken = this.handleConnectionCreation(startTower, endTower);
+      if (!connectionActionTaken && startTower) {
+        this.renderer.showConnectionFailure(startTower.id);
+      }
     }
 
     // --- Step 3: Apply Swipe-to-Break ONLY if no connection action occurred --- 
     if (!connectionActionTaken && potentialBrokenConnection && potentialBrokenConnection.sourceTower.team === this.gameState.playerTeam) {
-      // If the drag crossed an existing player's connection AND no connection was created/toggled,
-      // then break the crossed connection.
-      console.log(`Swipe Break: Breaking connection from ${potentialBrokenConnection.sourceTower.id} to ${potentialBrokenConnection.targetTower.id}`);
+      if (DEBUG_MODE) console.log(`Swipe Break: Breaking connection from ${potentialBrokenConnection.sourceTower.id} to ${potentialBrokenConnection.targetTower.id}`);
       this.gameState.connections = this.gameState.connections.filter(conn => 
         conn.sourceTowerId !== potentialBrokenConnection.sourceTower.id || 
         conn.targetTowerId !== potentialBrokenConnection.targetTower.id
@@ -229,7 +225,7 @@ class GameEngine {
 
   handleMouseLeave(event) {
     if (this.gameState.playerInput.isDragging) {
-      console.log('Drag cancelled due to mouse leaving canvas.');
+      if (DEBUG_MODE) console.log('Drag cancelled due to mouse leaving canvas.');
       this.gameState.playerInput.isDragging = false;
       this.gameState.playerInput.startTowerId = null;
     }
@@ -253,8 +249,7 @@ class GameEngine {
         const nearestConnection = this.findNearestConnection(pos.x, pos.y);
         
         if (nearestConnection && nearestConnection.sourceTower.team === this.gameState.playerTeam) {
-          // Break the connection
-          console.log(`Double-click: Breaking connection from ${nearestConnection.sourceTower.id} to ${nearestConnection.targetTower.id}`);
+          if (DEBUG_MODE) console.log(`Double-click: Breaking connection from ${nearestConnection.sourceTower.id} to ${nearestConnection.targetTower.id}`);
           this.gameState.connections = this.gameState.connections.filter(conn => 
             conn.sourceTowerId !== nearestConnection.sourceTower.id || 
             conn.targetTowerId !== nearestConnection.targetTower.id
@@ -395,7 +390,7 @@ class GameEngine {
       if (intersectingObject) {
         if (intersectingObject.isHedge) {
           // If there's a hedge in the way, prevent the connection
-          console.log(`Cannot connect through hedge: ${intersectingObject.message}`);
+          if (DEBUG_MODE) console.log(`Cannot connect through hedge: ${intersectingObject.message}`);
           // Reset dragging state and return early
           this.gameState.playerInput.isDragging = false;
           this.gameState.playerInput.startTowerId = null;
@@ -403,7 +398,7 @@ class GameEngine {
           return;
         } else if (intersectingObject.id !== endTower.id) {
           // It's a tower in the way
-          console.log(`Cannot connect through tower ${intersectingObject.id}. Targeting the intersecting tower instead.`);
+          if (DEBUG_MODE) console.log(`Cannot connect through tower ${intersectingObject.id}. Targeting the intersecting tower instead.`);
           endTower = intersectingObject;
         }
       }
@@ -416,7 +411,7 @@ class GameEngine {
     if (!connectionActionTaken && potentialBrokenConnection && potentialBrokenConnection.sourceTower.team === this.gameState.playerTeam) {
       // If the drag crossed an existing player's connection AND no connection was created/toggled,
       // then break the crossed connection.
-      console.log(`Touch Swipe Break: Breaking connection from ${potentialBrokenConnection.sourceTower.id} to ${potentialBrokenConnection.targetTower.id}`);
+      if (DEBUG_MODE) console.log(`Touch Swipe Break: Breaking connection from ${potentialBrokenConnection.sourceTower.id} to ${potentialBrokenConnection.targetTower.id}`);
       this.gameState.connections = this.gameState.connections.filter(conn => 
         conn.sourceTowerId !== potentialBrokenConnection.sourceTower.id || 
         conn.targetTowerId !== potentialBrokenConnection.targetTower.id
@@ -466,7 +461,7 @@ class GameEngine {
     if (this.gameState.gameStatus !== 'won' && this.gameState.gameStatus !== 'lost') {
         this.animationFrameId = requestAnimationFrame(this.gameLoop);
     } else {
-        console.log(`Game loop stopping due to status: ${this.gameState.gameStatus}`);
+        if (DEBUG_MODE) console.log(`Game loop stopping due to status: ${this.gameState.gameStatus}`);
         // Potentially add final cleanup or rendering calls here if needed
     }
   };
@@ -505,7 +500,7 @@ class GameEngine {
           
           // If a tower was captured, handle connection cleanup
           if (result.teamChanged) {
-            console.log(`Tower ${targetTower.id} changed from team ${result.previousTeam} to ${result.newTeam}`);
+            if (DEBUG_MODE) console.log(`Tower ${targetTower.id} changed from team ${result.previousTeam} to ${result.newTeam}`);
             
             // Remove any existing OUTBOUND connections FROM the captured tower
             // The tower's internal connections list is already cleared in Tower.receiveUnits
@@ -599,14 +594,7 @@ class GameEngine {
         // --- End Unit Sending Logic ---
 
       } else {
-        // Connection is invalid, log it and implicitly remove it by not adding to validConnections
-        if (!sourceTower || !targetTower) {
-             console.log(`Removing connection ${conn.sourceTowerId} -> ${conn.targetTowerId} because a tower no longer exists.`);
-        } else if (!sourceTower.connections.includes(targetTower.id)) {
-             console.log(`Removing connection ${conn.sourceTowerId} -> ${conn.targetTowerId} because source tower's internal list doesn't contain it.`);
-        } else {
-             console.log(`Removing invalid connection: ${conn.sourceTowerId} -> ${conn.targetTowerId} (Reason: Source units <= 0 or other)`);
-        }
+        // Connection is invalid, remove it silently
         // Note: We don't need to call updateInboundConnectionCounts here, 
         // as it's called when connections are explicitly created/removed or towers captured.
       }
@@ -639,7 +627,7 @@ class GameEngine {
 
     // If no non-player, non-neutral teams remain, the player has technically won
     if (nonPlayerTeams.size === 0) {
-      console.log('Win condition met! Player controls all non-neutral towers.');
+      if (DEBUG_MODE) console.log('Win condition met! Player controls all non-neutral towers.');
       this.gameState.gameStatus = 'victorious'; // Set status to victorious, game continues
       if (this.onGameWon) {
         this.onGameWon(); // Notify the UI component (GameCanvas)
@@ -650,11 +638,9 @@ class GameEngine {
   // Method to officially declare victory and end the game (called by UI)
   declareVictory() {
     if (this.gameState.gameStatus === 'victorious') {
-        console.log('Victory officially declared by player.');
-        this.gameState.gameStatus = 'won'; // Set status to won to trigger final celebration
-        // The VictoryCelebration component will handle the rest
+        this.gameState.gameStatus = 'won';
     } else {
-        console.warn('DeclareVictory called when game status was not \'victorious\'.');
+        if (DEBUG_MODE) console.warn('DeclareVictory called when game status was not victorious.');
     }
   }
 
@@ -665,7 +651,7 @@ class GameEngine {
     const playerHasTowers = this.gameState.towers.some(tower => tower.team === this.gameState.playerTeam);
 
     if (!playerHasTowers) {
-      console.log('Defeat condition met! Player has lost all towers.');
+      if (DEBUG_MODE) console.log('Defeat condition met!');
       this.gameState.gameStatus = 'lost';
       if (this.onGameLost) {
         this.onGameLost();
@@ -706,13 +692,13 @@ class GameEngine {
   }
 
   start() {
-    console.log('Starting game loop...');
+    if (DEBUG_MODE) console.log('Starting game loop...');
     this.lastTimestamp = performance.now();
     this.animationFrameId = requestAnimationFrame(this.gameLoop);
   }
 
   stop() {
-    console.log('Stopping game loop...');
+    if (DEBUG_MODE) console.log('Stopping game loop...');
     if (this.animationFrameId) {
       cancelAnimationFrame(this.animationFrameId);
       this.animationFrameId = null;
@@ -742,8 +728,8 @@ class GameEngine {
       }
     });
     
-    // Debug isolated towers
-    if (Math.random() < 0.01) { // Only log occasionally
+    // Debug isolated towers (reduced frequency)
+    if (DEBUG_MODE && Math.random() < 0.01) {
       this.gameState.towers.forEach(tower => {
         if (tower.isIsolated() && tower.team !== 'neutral') {
           console.log(`Tower ${tower.id} (team: ${tower.team}) is isolated and self-building at rate: ${tower.getSelfBuildRate()} units per 5 seconds`);
@@ -944,8 +930,8 @@ class GameEngine {
       const existingConnection = this.gameState.connections.find(
         conn => conn.sourceTowerId === startTower.id && conn.targetTowerId === endTower.id
       );
-      if (!existingConnection) { // Only log if it's a failed *new* connection attempt
-          console.log(`Tower ${startTower.id} cannot add more connections. Current: ${startTower.connections.length}, Max: ${startTower.getMaxConnections()}, Units: ${startTower.unitCount}`);
+      if (!existingConnection) {
+          this.renderer.showConnectionFailure(startTower.id);
       }
       return false; // Fail: Source tower is full
     }
@@ -956,8 +942,8 @@ class GameEngine {
     );
     if (existingConnectionIndex !== -1) {
       // Connection A->B already exists. Per user request, do nothing.
-      console.log(`Connection from ${startTower.id} to ${endTower.id} already exists. Doing nothing.`);
-      return false; // Indicate no action was taken
+      // Connection A->B already exists. Do nothing.
+      return false;
     }
 
     // --- Check 3: Does the reverse connection B->A exist between FRIENDLY towers? ---
@@ -969,7 +955,6 @@ class GameEngine {
       // Reverse connection B->A exists between friendly towers.
       // Since we already passed Check 1, we know startTower (A) has capacity.
       // Remove B->A first.
-      console.log(`Friendly reverse connection found from ${endTower.id} to ${startTower.id}. Removing it.`);
       this.gameState.connections.splice(reverseConnectionIndex, 1);
       endTower.removeConnection(startTower.id); 
       // Note: updateInboundConnectionCounts will be called later if A->B is successfully added.
@@ -987,19 +972,15 @@ class GameEngine {
         targetTowerId: endTower.id 
       });
       
-      console.log(`Added connection from ${startTower.id} to ${endTower.id}`);
-      console.log(`Tower ${startTower.id} now has ${startTower.connections.length}/${startTower.getMaxConnections()} connections. Units: ${startTower.unitCount}`);
+      if (DEBUG_MODE) console.log(`Added connection from ${startTower.id} to ${endTower.id}`);
       
       // Update inbound counts after any potential addition/removal
       this.updateInboundConnectionCounts();
-      return true; // Success: Connection added or direction reversed
+      return true;
     } else {
-      // This case should theoretically not be reached if canAddConnection() was true,
-      // unless addConnection has internal logic preventing duplicates again (which is fine).
-      console.log(`Failed to add connection from ${startTower.id} to ${endTower.id} via tower.addConnection, though capacity seemed available.`);
-      // Ensure inbound counts are updated even on failure, in case a reverse connection was removed.
+      // Update inbound counts even on failure, in case a reverse connection was removed.
       this.updateInboundConnectionCounts(); 
-      return false; // Failed to add connection internally in Tower class
+      return false;
     }
   }
 

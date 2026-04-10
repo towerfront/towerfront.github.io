@@ -7,6 +7,8 @@ class Renderer {
         this.grassPattern = this.createGrassPattern();
         this.staticElements = []; // For decorative elements like trees/bushes that don't interfere with gameplay
         this.towerGrowthAnimation = new Map(); // Track growing towers for animation
+        this.hedgeLeafCache = new Map(); // Cache leaf positions per hedge to prevent flicker
+        this.connectionFailures = new Map(); // Track failed connection flash animations
         
         // Create a few random decorative elements that don't overlap with initial tower positions
         this.initStaticElements();
@@ -19,6 +21,14 @@ class Renderer {
             [TOWER_TYPES.HEALING]: typeof this.createHorseheadIcon === 'function' ? this.createHorseheadIcon.bind(this) : null,
             [TOWER_TYPES.NORMAL]: null // No special icon for normal towers
         };
+    }
+
+    // Show a brief red flash on a tower when a connection fails
+    showConnectionFailure(towerId) {
+        this.connectionFailures.set(towerId, {
+            startTime: Date.now(),
+            duration: 400
+        });
     }
 
     // Add handleCanvasResize method to handle canvas resizing
@@ -268,6 +278,23 @@ class Renderer {
 
         // Draw connection indicators based on tower type
         this.drawConnectionIndicators(tower, radius);
+
+        // Draw connection failure flash if active
+        const failAnim = this.connectionFailures.get(tower.id);
+        if (failAnim) {
+            const elapsed = Date.now() - failAnim.startTime;
+            const progress = elapsed / failAnim.duration;
+            if (progress < 1) {
+                const alpha = 0.6 * (1 - progress);
+                this.ctx.strokeStyle = `rgba(255, 60, 60, ${alpha})`;
+                this.ctx.lineWidth = 4;
+                this.ctx.beginPath();
+                this.ctx.arc(tower.x, tower.y, radius + 6, 0, Math.PI * 2);
+                this.ctx.stroke();
+            } else {
+                this.connectionFailures.delete(tower.id);
+            }
+        }
 
         this.ctx.restore();
     }
@@ -613,10 +640,16 @@ class Renderer {
         const numArrows = Math.max(1, Math.floor(dist * arrowDensity / 100));
         const arrowSpacing = dist / (numArrows + 1);
         
-        this.ctx.fillStyle = '#FFFFFF'; // White arrows
+        // Animate arrow positions along the connection
+        const time = performance.now() / 1000;
+        const flowOffset = (time * 60) % arrowSpacing; // Move at 60px/s
         
-        for (let i = 1; i <= numArrows; i++) {
-            const t = i * arrowSpacing / dist; // Position along the line (0-1)
+        this.ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+        
+        for (let i = 0; i <= numArrows; i++) {
+            const basePos = i * arrowSpacing + flowOffset;
+            if (basePos <= 0 || basePos >= dist) continue;
+            const t = basePos / dist;
             const arrowX = sourceTower.x + dx * t;
             const arrowY = sourceTower.y + dy * t;
             
@@ -644,10 +677,16 @@ class Renderer {
         const numArrows = Math.max(1, Math.floor(halfDist * arrowDensity / 100));
         const arrowSpacing = halfDist / (numArrows + 1);
         
-        this.ctx.fillStyle = '#FFFFFF'; // White arrows
+        // Animate arrow positions
+        const time = performance.now() / 1000;
+        const flowOffset = (time * 60) % arrowSpacing;
         
-        for (let i = 1; i <= numArrows; i++) {
-            const t = i * arrowSpacing / halfDist; // Position along the line (0-1)
+        this.ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+        
+        for (let i = 0; i <= numArrows; i++) {
+            const basePos = i * arrowSpacing + flowOffset;
+            if (basePos <= 0 || basePos >= halfDist) continue;
+            const t = basePos / halfDist;
             const arrowX = startX + dx * t;
             const arrowY = startY + dy * t;
             
@@ -876,48 +915,35 @@ class Renderer {
         this.ctx.fillStyle = '#2E7D32'; // Dark green base
         this.ctx.fillRect(-width/2, -height/2, width, height);
         
-        // Add texture and detail to the hedge
+        // Add texture and detail to the hedge — use cached leaf positions to prevent flicker
         const leafSize = 5;
-        const leafDensity = Math.max(8, Math.floor((width * height) / 300)); // Scale leaf count based on hedge size
+        const leafDensity = Math.max(8, Math.floor((width * height) / 300));
+        const hedgeKey = hedge.id != null ? hedge.id : `${x}_${y}_${width}_${height}`;
         
-        this.ctx.fillStyle = '#388E3C'; // Slightly lighter green for leaves
-        
-        // Random leaf pattern
-        for (let i = 0; i < leafDensity; i++) {
-            const leafX = (Math.random() * width) - width/2;
-            const leafY = (Math.random() * height) - height/2;
-            
-            this.ctx.beginPath();
-            this.ctx.arc(leafX, leafY, leafSize, 0, Math.PI * 2);
-            this.ctx.fill();
+        if (!this.hedgeLeafCache.has(hedgeKey)) {
+            const leaves = [];
+            for (let i = 0; i < leafDensity; i++) {
+                leaves.push({
+                    x: (Math.random() * width) - width/2,
+                    y: (Math.random() * height) - height/2,
+                    shade: Math.random() > 0.5 ? '#388E3C' : '#43A047'
+                });
+            }
+            this.hedgeLeafCache.set(hedgeKey, leaves);
         }
+        
+        const cachedLeaves = this.hedgeLeafCache.get(hedgeKey);
+        cachedLeaves.forEach(leaf => {
+            this.ctx.fillStyle = leaf.shade;
+            this.ctx.beginPath();
+            this.ctx.arc(leaf.x, leaf.y, leafSize, 0, Math.PI * 2);
+            this.ctx.fill();
+        });
         
         // Add outline
         this.ctx.strokeStyle = '#1B5E20'; // Darker green for outline
         this.ctx.lineWidth = 2;
         this.ctx.strokeRect(-width/2, -height/2, width, height);
-        
-        // Add a hint that this is an obstacle
-        if (width > 40 && height > 40) {
-            // Draw a small no-passage symbol on larger hedges
-            const symbolSize = Math.min(width, height) * 0.2;
-            this.ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-            this.ctx.beginPath();
-            this.ctx.arc(0, 0, symbolSize, 0, Math.PI * 2);
-            this.ctx.fill();
-            
-            this.ctx.strokeStyle = '#B71C1C'; // Red
-            this.ctx.lineWidth = 2;
-            this.ctx.beginPath();
-            this.ctx.moveTo(-symbolSize * 0.7, -symbolSize * 0.7);
-            this.ctx.lineTo(symbolSize * 0.7, symbolSize * 0.7);
-            this.ctx.stroke();
-            
-            this.ctx.beginPath();
-            this.ctx.moveTo(symbolSize * 0.7, -symbolSize * 0.7);
-            this.ctx.lineTo(-symbolSize * 0.7, symbolSize * 0.7);
-            this.ctx.stroke();
-        }
         
         this.ctx.restore();
     }

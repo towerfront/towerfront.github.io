@@ -1,211 +1,194 @@
-import React, { useContext } from 'react';
+import React, { useContext, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { SettingsContext } from '../contexts/SettingsContext';
 import { useParams } from 'react-router-dom';
-
-// CSS styles as JS objects
-const styles = {
-  gameUi: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: '100%',
-    pointerEvents: 'none',
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'space-between',
-    zIndex: 10,
-  },
-  gameUiTop: {
-    display: 'flex',
-    justifyContent: 'center', // Ensure title is centered
-    alignItems: 'flex-start',
-    padding: '0.5rem',
-    width: '100%',
-    position: 'relative', // Needed for absolute positioning of pause button
-  },
-  levelInfo: {
-    backgroundColor: 'rgba(0, 70, 140, 0.8)',
-    color: 'white',
-    padding: '8px 20px',
-    borderRadius: '0 0 8px 8px',
-    fontWeight: 'bold',
-    boxShadow: '0 2px 5px rgba(0,0,0,0.3)',
-    pointerEvents: 'none',
-    display: 'flex', // Make level info a flex container
-    flexDirection: 'column', // Stack items vertically
-    alignItems: 'center', // Center items horizontally
-  },
-  progressBarContainer: {
-    width: '150px', // Adjust width as needed
-    height: '10px', // Adjust height as needed
-    backgroundColor: '#555', // Dark background for the bar
-    borderRadius: '3px',
-    display: 'flex',
-    overflow: 'hidden', // Ensure segments stay within bounds
-    marginTop: '5px', // Space between text and bar
-    border: '1px solid rgba(255, 255, 255, 0.3)',
-  },
-  progressBarSegment: {
-    height: '100%',
-    transition: 'width 0.2s ease-in-out', // Smooth transition for width changes
-  },
-  pauseButton: {
-    position: 'absolute', // Position absolutely in the top-right corner
-    top: '0.5rem',
-    right: '1rem', // Adjusted from 0.5rem to 1rem for better spacing
-    backgroundColor: 'rgba(0, 100, 150, 0.5)',
-    padding: '0.3rem',
-    width: '32px',
-    height: '32px',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    pointerEvents: 'auto',
-    borderRadius: '4px',
-    border: '1px solid rgba(255,255,255,0.7)',
-    color: 'white',
-    fontWeight: 'bold',
-    cursor: 'pointer',
-    transition: 'all 0.2s',
-    fontSize: '0.9rem',
-  },
-  pauseIcon: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    width: '14px',
-    height: '14px',
-  },
-  pauseBar: {
-    width: '4px',
-    height: '100%',
-    backgroundColor: 'white',
-    borderRadius: '2px',
-  },
-  declareVictoryContainer: {
-    position: 'absolute',
-    bottom: '0',
-    left: '0',
-    width: '100%',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    padding: '1rem',
-    backgroundColor: 'rgba(0, 0, 0, 0.7)', // Semi-transparent background
-    pointerEvents: 'auto', // Make this section interactive
-    zIndex: 11, // Ensure it's above the canvas but potentially below modals
-  },
-  declareVictoryText: {
-    color: 'white',
-    marginBottom: '0.5rem',
-    textAlign: 'center',
-    fontSize: '0.9rem',
-  },
-  declareVictoryButton: {
-    padding: '10px 20px',
-    backgroundColor: 'gold',
-    color: '#333',
-    border: '2px solid #333',
-    borderRadius: '8px',
-    fontSize: '16px',
-    fontWeight: 'bold',
-    boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
-    cursor: 'pointer',
-    animation: 'pulse 2s infinite',
-    pointerEvents: 'auto',
-  },
-  fpsCounter: {
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    color: 'white',
-    padding: '0.5rem',
-    borderRadius: '5px',
-    fontFamily: 'monospace',
-  }
-};
+import LevelManager from '../game/LevelManager';
 
 const GameUI = ({ 
   gameStatus, 
   onDeclareVictory, 
   onTogglePause, 
   isPaused, 
-  unitDistribution, // Receive distribution data
-  teamColors // Receive team colors
+  unitDistribution,
+  teamColors
 }) => {
   const { showFPS, currentFPS } = useContext(SettingsContext);
   const { levelId } = useParams();
-  const levelNumber = levelId ? levelId.replace(/[^\d]/g, '') : '1';
+  
+  // Get level name from LevelManager for a proper display
+  const levelName = useMemo(() => {
+    const levels = LevelManager.getAllLevels();
+    const level = levels.find(l => l.id === levelId);
+    return level?.name || `Stage ${levelId ? levelId.replace(/[^\d]/g, '') : '1'}`;
+  }, [levelId]);
 
-  // Sort teams for consistent bar order (optional, but good practice)
   const sortedTeams = Object.keys(unitDistribution || {}).sort();
 
   return (
-    <div style={styles.gameUi}>
-      <div style={styles.gameUiTop}>
-        <div style={styles.levelInfo}>
-          <div>Stage {levelNumber}</div> {/* Keep text */} 
-          {/* Progress Bar */} 
-          <div style={styles.progressBarContainer}>
+    <div className="game-hud">
+      <div className="hud-top">
+        <div className="hud-level-info">
+          <div className="hud-level-name">{levelName}</div>
+          <div className="hud-progress-bar">
             {sortedTeams.map(team => (
               <div 
                 key={team}
+                className="hud-progress-segment"
                 style={{
-                  ...styles.progressBarSegment,
-                  backgroundColor: teamColors[team] || '#ccc', // Use team color or fallback
-                  width: `${unitDistribution[team]}%` // Set width based on percentage
+                  backgroundColor: teamColors[team] || '#ccc',
+                  width: `${unitDistribution[team]}%`
                 }}
               />
             ))}
           </div>
         </div>
         
-        {/* Pause button */}
         <button 
-          style={styles.pauseButton}
+          className="hud-pause-btn"
           onClick={onTogglePause}
           aria-label={isPaused ? 'Resume' : 'Pause'}
+          title="Pause (Esc)"
         >
-          {isPaused ? (
-            "▶"
-          ) : (
-            <div style={styles.pauseIcon}>
-              <div style={styles.pauseBar}></div>
-              <div style={styles.pauseBar}></div>
-            </div>
-          )}
+          {isPaused ? '▶' : '⏸'}
         </button>
       </div>
       
-      {/* Container for FPS counter - moved from bottom to avoid overlap */}
-      <div style={{ position: 'absolute', bottom: '1rem', right: '1rem', pointerEvents: 'none' }}>
-        {showFPS && <div style={styles.fpsCounter}>FPS: {Math.round(currentFPS || 0)}</div>}
-      </div>
+      {showFPS && (
+        <div className="hud-fps">FPS: {Math.round(currentFPS || 0)}</div>
+      )}
 
-      {/* "Declare Victory" section shown only during 'victorious' state */}
       {gameStatus === 'victorious' && (
-        <div style={styles.declareVictoryContainer}>
-          <div style={styles.declareVictoryText}>
-            Victory condition met! Continue playing or declare victory to finish.
+        <div className="hud-victory-banner">
+          <div className="hud-victory-text">
+            All enemies defeated! You can keep playing or end the match.
           </div>
-          <button 
-            onClick={onDeclareVictory}
-            style={styles.declareVictoryButton}
-          >
+          <button className="hud-victory-btn" onClick={onDeclareVictory}>
             Declare Victory
           </button>
         </div>
       )}
       
-      <style>
-        {`
-          @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-          }
-        `}
-      </style>
+      <style>{`
+        .game-hud {
+          position: absolute;
+          top: 0; left: 0;
+          width: 100%; height: 100%;
+          pointer-events: none;
+          z-index: 10;
+          font-family: 'Josefin Sans', sans-serif;
+        }
+        .hud-top {
+          display: flex;
+          justify-content: center;
+          align-items: flex-start;
+          padding: 8px 12px;
+          position: relative;
+        }
+        .hud-level-info {
+          background: linear-gradient(180deg, rgba(0,60,120,0.9) 0%, rgba(0,40,80,0.85) 100%);
+          color: white;
+          padding: 8px 24px 10px;
+          border-radius: 0 0 10px 10px;
+          font-weight: bold;
+          box-shadow: 0 3px 8px rgba(0,0,0,0.4);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          min-width: 180px;
+        }
+        .hud-level-name {
+          font-size: 0.95rem;
+          letter-spacing: 0.5px;
+          margin-bottom: 6px;
+        }
+        .hud-progress-bar {
+          width: 160px;
+          height: 8px;
+          background: rgba(0,0,0,0.4);
+          border-radius: 4px;
+          display: flex;
+          overflow: hidden;
+          border: 1px solid rgba(255,255,255,0.15);
+        }
+        .hud-progress-segment {
+          height: 100%;
+          transition: width 0.3s ease;
+        }
+        .hud-pause-btn {
+          position: absolute;
+          top: 8px; right: 12px;
+          width: 36px; height: 36px;
+          background: rgba(0,0,0,0.5);
+          border: 1px solid rgba(255,255,255,0.4);
+          border-radius: 6px;
+          color: white;
+          font-size: 1rem;
+          cursor: pointer;
+          pointer-events: auto;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: background 0.2s;
+        }
+        .hud-pause-btn:hover {
+          background: rgba(0,0,0,0.7);
+        }
+        .hud-fps {
+          position: absolute;
+          bottom: 10px; right: 12px;
+          background: rgba(0,0,0,0.5);
+          color: rgba(255,255,255,0.7);
+          padding: 3px 8px;
+          border-radius: 4px;
+          font-family: monospace;
+          font-size: 0.75rem;
+        }
+        .hud-victory-banner {
+          position: absolute;
+          bottom: 0; left: 0; width: 100%;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          padding: 14px 20px;
+          background: linear-gradient(0deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.5) 100%);
+          pointer-events: auto;
+          animation: slideUp 0.4s ease-out;
+        }
+        .hud-victory-text {
+          color: rgba(255,255,255,0.9);
+          margin-bottom: 10px;
+          font-size: 0.9rem;
+        }
+        .hud-victory-btn {
+          padding: 10px 28px;
+          background: linear-gradient(180deg, #FFD700 0%, #FFA500 100%);
+          color: #333;
+          border: 2px solid rgba(0,0,0,0.2);
+          border-radius: 8px;
+          font-size: 1rem;
+          font-weight: bold;
+          font-family: 'Cinzel Decorative', serif;
+          cursor: pointer;
+          box-shadow: 0 3px 10px rgba(255,165,0,0.4);
+          animation: pulse 2s infinite;
+          transition: transform 0.1s;
+        }
+        .hud-victory-btn:hover {
+          transform: scale(1.05);
+        }
+        .hud-victory-btn:active {
+          transform: scale(0.98);
+        }
+        @keyframes pulse {
+          0% { box-shadow: 0 3px 10px rgba(255,165,0,0.4); }
+          50% { box-shadow: 0 3px 20px rgba(255,165,0,0.7); }
+          100% { box-shadow: 0 3px 10px rgba(255,165,0,0.4); }
+        }
+        @keyframes slideUp {
+          from { transform: translateY(100%); opacity: 0; }
+          to { transform: translateY(0); opacity: 1; }
+        }
+      `}</style>
     </div>
   );
 };
@@ -213,7 +196,7 @@ const GameUI = ({
 GameUI.propTypes = {
   gameStatus: PropTypes.oneOf(['playing', 'victorious', 'won', 'lost', 'paused']).isRequired,
   onTogglePause: PropTypes.func.isRequired,
-  onDeclareVictory: PropTypes.func.isRequired, // Add prop type
+  onDeclareVictory: PropTypes.func.isRequired,
   isPaused: PropTypes.bool.isRequired,
   unitDistribution: PropTypes.object.isRequired,
   teamColors: PropTypes.object.isRequired,

@@ -78,10 +78,6 @@ class Tower {
                     this.unitCount = Math.min(this.unitCount + selfBuildRate, MAX_UNITS_PER_TOWER);
                     this.selfBuildTimer %= selfBuildInterval;
                     
-                    if (Math.random() < 0.05) { // Log occasionally
-                        console.log(`Tower ${this.id} (team: ${this.team}) self-built ${selfBuildRate} units as an isolated tower`);
-                    }
-                    
                     // Check if tower just reached max capacity
                     if (this.unitCount >= MAX_UNITS_PER_TOWER) {
                         this.isMaxed = true;

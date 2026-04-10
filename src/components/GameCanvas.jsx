@@ -43,18 +43,13 @@ const GameCanvas = () => {
     canvas.height = height;
 
     // --- 3. Initialize Game Engine --- 
-    // Corrected: Removed width and height arguments, passed callbacks correctly
     gameEngineRef.current = new GameEngine(
       canvas,
       currentLevelId,
-      // Victory callback (Technical Win Condition Met)
       () => {
-        console.log('GameCanvas: Technical win condition met! Setting status to victorious.');
-        setGameStatus('victorious'); // Update status, allows continued play and shows button via GameUI
+        setGameStatus('victorious');
       },
-      // Defeat callback
       () => {
-        console.log('GameCanvas: Defeat condition met! Setting status to lost.');
         setGameStatus('lost');
         setShowDefeat(true);
       }
@@ -62,48 +57,24 @@ const GameCanvas = () => {
     gameEngineRef.current.start();
 
     // --- 4. Simplified Resize Handler --- 
-    // Only tells the renderer the display size might have changed
     const handleResize = () => {
       if (gameEngineRef.current && gameEngineRef.current.renderer) {
         gameEngineRef.current.renderer.handleCanvasResize();
       }
     };
     window.addEventListener('resize', handleResize);
-    handleResize(); // Initial call
+    handleResize();
 
-    // Add touch event handlers (no changes needed here)
+    // Add touch event handlers
     canvas.addEventListener('touchstart', handleTouchStart);
     canvas.addEventListener('touchmove', handleTouchMove);
     canvas.addEventListener('touchend', handleTouchEnd);
     canvas.addEventListener('touchcancel', handleTouchCancel);
 
-    // Set up FPS counter if enabled (no changes needed here)
-    if (showFPS) {
-      let frames = 0;
-      let lastTime = performance.now();
-      
-      const calculateFPS = () => {
-        frames++;
-        const now = performance.now();
-        if (now - lastTime >= 1000) {
-          const fps = Math.round((frames * 1000) / (now - lastTime));
-          updateFPS(fps);
-          frames = 0;
-          lastTime = now;
-        }
-        requestAnimationFrame(calculateFPS);
-      };
-      
-      fpsIntervalRef.current = requestAnimationFrame(calculateFPS);
-    }
-
     return () => {
       window.removeEventListener('resize', handleResize);
       if (gameEngineRef.current) {
         gameEngineRef.current.stop();
-      }
-      if (fpsIntervalRef.current) {
-        cancelAnimationFrame(fpsIntervalRef.current);
       }
       
       // Remove touch event listeners
@@ -112,7 +83,7 @@ const GameCanvas = () => {
       canvas.removeEventListener('touchend', handleTouchEnd);
       canvas.removeEventListener('touchcancel', handleTouchCancel);
     };
-  }, [levelId, showFPS, updateFPS]); // Dependencies remain the same
+  }, [levelId]);
 
   // Touch event handlers (forwarding to GameEngine, no changes needed)
   const handleTouchStart = (event) => {
@@ -189,25 +160,17 @@ const GameCanvas = () => {
     navigate('/');
   };
 
-  // --- Handler for Player Clicking "Declare Victory" ---
   const handleDeclareVictory = () => {
-    // Only proceed if the technical win condition was already met
     if (gameEngineRef.current && gameStatus === 'victorious') {
-      console.log('GameCanvas: Player clicked "Declare Victory". Setting status to won and showing celebration.');
-      gameEngineRef.current.declareVictory(); // Tell engine game is officially 'won' (stops loop etc.)
-      setGameStatus('won'); // Update local status to 'won'
-      setShowVictoryAnimation(true); // NOW trigger the celebration screen
-    } else {
-      console.warn('handleDeclareVictory called in unexpected state:', gameStatus);
+      gameEngineRef.current.declareVictory();
+      setGameStatus('won');
+      setShowVictoryAnimation(true);
     }
   };
 
-  // Handle finishing the victory celebration animation/component
-  // Wrap in useCallback to stabilize the function reference
   const handleVictoryComplete = useCallback(() => {
-    console.log('GameCanvas: Victory celebration complete. Navigating back to menu.');
-    navigate('/'); // Navigate away after celebration finishes
-  }, [navigate]); // Add navigate as dependency
+    navigate('/');
+  }, [navigate]);
 
   // Function to calculate unit distribution
   // Wrap in useCallback as it's used in a useEffect dependency array
@@ -239,11 +202,26 @@ const GameCanvas = () => {
 
   }, []); // Empty dependency array as it doesn't depend on component state/props
 
-  // Effect for periodic state updates (like progress bar)
+  // Consolidated update loop: FPS counter + unit distribution
   useEffect(() => {
+    let frames = 0;
+    let lastFPSTime = performance.now();
+
     const updateLoop = (timestamp) => {
+      // FPS counting
+      if (showFPS) {
+        frames++;
+        const now = performance.now();
+        if (now - lastFPSTime >= 1000) {
+          const fps = Math.round((frames * 1000) / (now - lastFPSTime));
+          updateFPS(fps);
+          frames = 0;
+          lastFPSTime = now;
+        }
+      }
+
+      // Update unit distribution periodically
       if (gameEngineRef.current && !isPaused) {
-        // Update distribution based on interval
         if (timestamp - lastDistributionUpdateTime.current > distributionUpdateInterval) {
           calculateUnitDistribution();
           lastDistributionUpdateTime.current = timestamp;
@@ -259,7 +237,21 @@ const GameCanvas = () => {
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [isPaused, calculateUnitDistribution]); // Rerun if pause state changes
+  }, [isPaused, calculateUnitDistribution, showFPS, updateFPS]);
+
+  // Keyboard shortcut for pause (Escape or P key)
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' || e.key === 'p' || e.key === 'P') {
+        // Don't toggle pause if victory/defeat overlays are showing
+        if (!showVictoryAnimation && !showDefeat) {
+          handleTogglePause();
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showVictoryAnimation, showDefeat]);
 
   return (
     <div className="game-container">
@@ -295,7 +287,7 @@ const GameCanvas = () => {
         <PauseMenu 
           onResume={handleResume}
           onRestart={handleRestart}
-          onQuit={handleBackToMenu}
+          onBackToMenu={handleBackToMenu}
         />
       )}
     </div>

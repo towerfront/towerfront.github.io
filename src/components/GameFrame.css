@@ -30,7 +30,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center; /* Center content vertically by default */
+  justify-content: safe center; /* Center content but don't clip top on overflow */
   position: relative; /* For potential absolute positioning inside */
 }
 
